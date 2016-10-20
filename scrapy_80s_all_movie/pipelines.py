@@ -25,5 +25,5 @@ class TutorialPipeline(object):
     def insert_into_table(self,conn,item):
         print type(item['name'])
         va = (item['name'],'1',item['desc'])
-        sql = "insert into tb_scrapya values ('%s','%s','%s')" % va
+        sql = "insert into tb_scrapy values ('%s','%s','%s')" % va
         conn.execute(sql)
