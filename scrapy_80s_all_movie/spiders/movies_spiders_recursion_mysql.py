@@ -18,15 +18,15 @@ class Movies_Spider(scrapy.spiders.Spider):
         item['name'] = response.meta['name']
         item['link'] = link
         item['desc'] = response.meta['desc']
-        print 'abc' + item['name'] + item['link'] + item['desc']
-        print type(item['name'])
-        return  item
+        yield  item
 
     def parse(self, response):
         selector = scrapy.Selector(response)
         movies = selector.xpath('//div[@class="clearfix noborder block1"]/ul[@class="me1 clearfix"]/li')
+        titlePage = selector.xpath('//div[@class="pager"]/a')[-1].xpath("@href").extract()[0]
+        mode = re.compile(r'\d+')
+        titleNum = mode.findall(titlePage)[0]
 
-        num = 0
         for i in movies:
             name = i.xpath('h3/a/text()').extract()[0]
             name = name.replace(' ', '').replace('\n', '')
@@ -35,3 +35,9 @@ class Movies_Spider(scrapy.spiders.Spider):
             link = 'http://www.80s.tw' + i.xpath('a//@href').extract()[0]
             yield scrapy.http.Request(url=link, meta={'name':name,'desc':desc} ,callback=self.parse_after)
 
+            nextPage = []
+            for j in range(2, int(titleNum)):
+                base_url = "http://www.80s.tw/movie/list/----h-p" + str(j)
+                nextPage.append(base_url)
+            for next_url in nextPage:
+                yield scrapy.http.Request(next_url, callback=self.parse)
